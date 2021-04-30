@@ -1,12 +1,12 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const passportLocal = require('passport-local').Strategy;
 const passportHTTPBearer = require('passport-http-bearer').Strategy;
 const mongo = require('./database.js');
 const agenda = require('./agenda.js');
-const marvel = require('./marvel.js');
 const path = require('path');
 const { off } = require('process');
 
@@ -47,6 +47,8 @@ const start = async() => {
         });
     }));
 
+    app.use(cors());
+
     app.use(passport.initialize());
 
     app.use(express.json());
@@ -62,15 +64,6 @@ const start = async() => {
             if (err) return response.send({ error: 'db error' });
             return response.send({ token: user.token });
         });
-    });
-
-    app.post('/api/search', async(request, response) => {
-        let search = request.body.search;
-        console.log(`[Search] ${search}`);
-        let limit = request.body.limit || 10;
-        let offset = request.body.offset || 1;
-        let data = await marvel.searchComics(search, limit, offset);
-        return response.send(data);
     });
 
     app.post('/api/local', passport.authenticate('bearer', { session: false }), async(request, response) => {
